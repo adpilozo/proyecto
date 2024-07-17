@@ -1,0 +1,23 @@
+Item:
+    datetime    fecha
+    double      monto
+    [string]    etiquetas
+    string      descripción
+
+    string      to_string()                         // [x] Devuelve en formato string la información del item
+    void        mostrar()                           // [x] Muestra en consola el to_string() del item
+    
+Registro:
+    string      ruta                                // [x] La dirección o nombre del archivo .csv
+
+    Item        csv_item([string] csv)              // [x] Convierte un array de strings en formato .csv en un item
+    [string]    item_csv(Item item)                 // [x] Convierte un item en un array de strings en formato .csv
+    [Items]     leer_items(string ruta)             // [x] Devuelve una lista de items guardados en el .csv
+    void        sobrescribir_items([Item] items)    // [x] Elimina lo guardado en el .csv y sobrescribe una nueva lista de items
+    void        agregar_item(Item item)             // [x] Agrega un item al final del .csv
+    void        eliminar_item(int indice)           // [x] Elimina un item del .csv, especificado por su índice
+    Item        obtener_item(int indice)            // [x] Devuelve un item del .csv, especificado por su índice
+    [Items]     filtrar_fecha(datetime fecha)       // [x] Devuelve una lista de items de una fecha específica
+    [Items]     filtrar_mes(int mes, int año)       // [x] Devuelve una lista de items de un mes específico
+
+    double      monto_total()                       // [x] Devuelve la suma de los montos de todos los items
