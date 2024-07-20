@@ -1,20 +1,19 @@
 import csv
-import os
 from datetime import datetime
 
 formato_fecha = '%Y/%m/%d %H:%M:%S'
 delimitadores_csv = [',', '_']
 
 class Item:
-    def __init__ (self, fecha, monto, etiquetas, descripcion):
+    def __init__ (self, fecha = datetime(1, 1, 1), monto = 0, etiquetas = [], descripcion = ""):
         self.fecha = fecha
         self.monto = monto
         self.etiquetas = etiquetas
         self.descripcion = descripcion
-    
+
     def to_string(self):
         return 'Item:' + '\n  Fecha: ' + datetime.strftime(self.fecha, formato_fecha) + '\n  Monto: ' + str(self.monto) + '\n  Etiquetas: ' + str(self.etiquetas) +  '\n  descripcion: ' + self.descripcion
-    
+
     def mostrar(self):
         print(self.to_string())
 
@@ -23,8 +22,11 @@ class Item:
             return self.descripcion == item.descripcion and self.fecha == item.fecha and self.etiquetas == item.etiquetas and self.monto == item.monto
         return False
 
+    def __str__(self) -> str:
+        return f"Fecha: {self.fecha}, Monto: {self.monto}, Etiquetas: {self.etiquetas}, Descripción: {self.descripcion}"
+
 class Registro:
-    def __init__(self, ruta):
+    def __init__(self, ruta:str):
         self.ruta = ruta
 
     def csv_item(self, csv):
@@ -49,8 +51,8 @@ class Registro:
 
             for linea in lector:
                 items.append(self.csv_item(linea))
-            
-            return items
+
+        return items
 
     def sobrescribir_items(self, items):
         items_csv = []
@@ -61,7 +63,7 @@ class Registro:
         with open(self.ruta, 'w', newline = '', encoding='utf-8') as archivo:
             escritor = csv.writer(archivo, delimiter = delimitadores_csv[0])
             escritor.writerows(items_csv)
-    
+
     def agregar_item(self, item):
         items = self.leer_items()
         items.append(item)
@@ -72,19 +74,19 @@ class Registro:
         if indice < len(items):
             del items[indice]
         self.sobrescribir_items(items)
-    
+
     def obtener_item(self, indice):
         return self.leer_items()[indice]
-    
+
     def filtrar_fecha(self, fecha):
         items_filtrado = []
 
         for item in self.leer_items():
             if item.fecha.date == fecha.date:
                 items_filtrado.append(item)
-        
+
         return items_filtrado
-    
+
     def filtrar_mes(self, mes, año):
         items_filtrado = []
 
@@ -101,58 +103,3 @@ class Registro:
             total += item.monto
         
         return round(total, 2)
-
-class Listado:
-    def __init__(self, items:list[Item] = []):
-        self.items = items
-
-    def setItems(self, csvFile: str) -> None:
-        if os.path.isfile(csvFile):
-            reg1 = Registro(csvFile)
-            self.items = reg1.leer_items()
-        else:
-            with open(csvFile, "w"):
-                pass
-    
-    def addItems(self, item: Item) -> None:
-        self.items.append(item)
-
-    def removeItems(self, item: Item) -> None:
-        for i in self.items:
-            if i == item:
-                self.items.remove(i)
-
-    def printItems(self) -> None:
-        for item in self.items:
-            item.mostrar()
-
-    def dateFilter(self, fechaInicio: datetime, fechaFin: datetime = datetime.now()):
-        listaFiltrada = Listado()
-
-        for i in self.items:
-            if i.fecha.date() >= fechaInicio.date() and i.fecha.date() <= fechaFin.date():
-                listaFiltrada.addItems(i)
-        
-        return listaFiltrada
-
-class Estadisticas:
-    def statsMonth(list1: Listado, mes:int = datetime.now().month, año:int = datetime.now().year):
-        mesAux = mes + 1
-        añoAux = año
-        if mesAux == 12:
-            mesAux = 0
-            añoAux += 1
-
-        l1 = list1.dateFilter(datetime(año, mes, 1), datetime(añoAux, mesAux, 1))
-
-        return l1
-
-    def statsYear(list1: Listado, año:int = datetime.now().year):
-        l1 = Listado()
-
-        for i in range(1, 12):
-            aux = list1.dateFilter(datetime(año, i, 1), datetime(año, i + 1, 1))
-            for item in aux.items:
-                l1.addItems(item)
-
-        return l1

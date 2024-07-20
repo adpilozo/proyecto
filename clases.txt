@@ -21,3 +21,30 @@ Registro:
     [Items]     filtrar_mes(int mes, int año)       // [x] Devuelve una lista de items de un mes específico
 
     double      monto_total()                       // [x] Devuelve la suma de los montos de todos los items
+
+Listado:
+    // Esta clase lleva la cuenta de los items ingresados en un inicio. Además, tiene funciones para operar con dichos items.
+    [Items]     items                               // [x] Lista de items específicos para operar con estos. Por defecto, items está vacío (items = []).
+
+    void        setItems(string csvFile)                    // [x] Usando la clase Registro, es posible importar todos los elementos dentro de items
+    void        addItems(Item item)                         // [x] Añade un item a items
+    void        removeItems(item item)                      // [x] Elimina el item indicado
+    void        printItems()                                // [x] Muestra en cada línea, cada item dentro de items
+    Listado     dateFilter(datetime inicio, datetime fin)   // [x] Hace un filtrado rápido de qué items están dentro de las fechas establecidas (inicio - fin). La fecha fin está definida hasta la fecha actual por defecto.
+    Item        getLatest()                                 // [x] Devuelve el Item de la fecha más alta.
+    Item        getOldest()                                 // [x] Devuelve el Item de la fecha más baja.
+    [string]    getDescripciones()                          // [x] Devuelve una lista de todas las descripciones.
+    [string]    getGastos()                                 // [x] Devuelve una lista de todos los gastos.
+    [string]    getFechas()                                 // [x] Devuelve una lista de todas las fechas.
+    [string]    getEtiquetas()                              // [x] Devuelve un diccionario de todas las etiquetas, donde la clave será el nombre de la etiqueta, y el valor, la cantidad de veces repetida.
+    void        saveItems(string ruta)                      // [x] Llamando a la clase Registro, guarda los valores de items en la base de datos. Ruta está definida como "items.csv" por defecto.
+
+Estadisticas:
+    // Esta clase está hecha para obtener las estadísticas de un listado específico. Las funciones se llaman al llamar a la clase, no creando un objeto.
+
+    Listado     statsMonth(Listado l1, int mes, int año)    // [x] Devuelve un Listado con todos los Items dentro del listado en el mes y año definidos. Mes y año tienen la fecha actual por defecto.
+    Listado     statsYear(Listado l1, int año)              // [x] Devuelve un Listado con todos los Items dentro del listado en el año especificado. Año tiene la fecha actual por defecto.
+    function    pointsToFunction([int] lX, [int] lF)        // [x] Devuelve una función calculada a base de puntos otorgados en dos arreglos. Se basa principalmente en el método de interpolación de Lagrange.
+    function    getFunction(Listado list1)                  // [x] Devuelve una función calculada en base de los Items de un listado. Esta función va de la mano con pointsToFunction(), pues solamente obtiene los valores de las listas lX y lF. lX y lF son la fecha en base de días y el gasto, respectivamente.
+    Item        predictNextMonth(Listado list1)             // [x] Devuelve un Item calculado en base de la interpolación de pointsToFunction(). Además, evalúa el mes siguiente y crea el Item a retornar con esos valores nuevos.
+    Listado     predictNextYear(Listado list1)              // [ ] Devuelve un Listado con 12 Items, uno por mes, donde se calcula su posición en la función generada.
