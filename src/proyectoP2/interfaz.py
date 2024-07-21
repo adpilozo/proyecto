@@ -1,16 +1,17 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 from datetime import datetime
-from bd import Item, Registro
-from Listado import Listado
-from Estadisticas import Estadisticas
+from .bd import Registro, Item
+from .Listado import Listado
+from .Estadisticas import Estadisticas
 
 class GestionGastosApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Gestión de Gastos Personales")
         
-        self.registro = Registro('items.csv')
+        self.ruta = './src/utils/databases/items.csv'
+        self.registro = Registro(self.ruta)
         self.listado = Listado(self.registro.leer_items())
 
         self.create_menu()
@@ -187,7 +188,7 @@ class GestionGastosApp:
 
             nuevo_item = Item(fecha, monto, etiquetas, descripcion)
             self.listado.addItems(nuevo_item)
-            self.listado.saveItems('items.csv')
+            self.listado.saveItems(self.ruta)
 
             self.update_treeview()
             self.clear_entries()
@@ -203,8 +204,3 @@ class GestionGastosApp:
         self.fecha_inicio_entry.delete(0, tk.END)
         self.fecha_fin_entry.delete(0, tk.END)
         self.etiquetas_buscar_entry.delete(0, tk.END)
-
-if __name__ == '__main__':
-    root = tk.Tk()
-    app = GestionGastosApp(root)
-    root.mainloop()

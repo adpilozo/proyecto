@@ -1,6 +1,6 @@
 import os
 from datetime import datetime
-from bd import Item, Registro
+from .bd import Item, Registro
 
 class Listado:
     def __init__(self, items:list[Item] = []):

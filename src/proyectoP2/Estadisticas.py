@@ -1,6 +1,6 @@
 import copy
-from Listado import *
-from bd import Item
+from .Listado import *
+from .bd import Item
 from datetime import datetime
 from sympy import Symbol # Librería a instalar (pip install sympy)
 
