@@ -45,6 +45,8 @@ class GestionGastosApp:
         ttk.Label(frame, text='Fecha (YYYY/MM/DD HH:MM:SS)').grid(row=0, column=0, padx=5, pady=5)
         self.fecha_entry = ttk.Entry(frame)
         self.fecha_entry.grid(row=0, column=1, padx=5, pady=5)
+        # Insertar la fecha actual en el campo de entrada de la fecha
+        self.fecha_entry.insert(0, datetime.now().strftime('%Y/%m/%d %H:%M:%S'))
 
         ttk.Label(frame, text='Monto').grid(row=1, column=0, padx=5, pady=5)
         self.monto_entry = ttk.Entry(frame)
@@ -78,6 +80,7 @@ class GestionGastosApp:
         ttk.Label(filter_frame, text='Fecha Fin (YYYY/MM/DD)').grid(row=1, column=0, padx=5, pady=5)
         self.fecha_fin_entry = ttk.Entry(filter_frame)
         self.fecha_fin_entry.grid(row=1, column=1, padx=5, pady=5)
+        self.fecha_fin_entry.insert(0, datetime.now().strftime('%Y/%m/%d'))  # Fecha actual
 
         ttk.Label(filter_frame, text='Etiquetas (separadas por comas)').grid(row=2, column=0, padx=5, pady=5)
         self.etiquetas_buscar_entry = ttk.Entry(filter_frame)
@@ -85,6 +88,9 @@ class GestionGastosApp:
 
         self.filter_button = ttk.Button(filter_frame, text='Filtrar', command=self.update_treeview)
         self.filter_button.grid(row=3, column=0, columnspan=2, pady=10)
+
+        self.show_all_button = ttk.Button(filter_frame, text='Todos los Gastos', command=self.show_all_gastos)
+        self.show_all_button.grid(row=3, column=2, columnspan=2, padx=5, pady=10)
 
         # Treeview
         self.tree = ttk.Treeview(frame, columns=('Fecha', 'Monto', 'Etiquetas', 'Descripción'), show='headings')
@@ -169,15 +175,23 @@ class GestionGastosApp:
             if etiquetas_buscar:
                 listado_filtrado.items = [item for item in listado_filtrado.items if any(etq in etiquetas_buscar for etq in item.etiquetas)]
 
-            if listado_filtrado.items:
-                for item in self.tree.get_children():
-                    self.tree.delete(item)
-
-                for item in listado_filtrado.items:
-                    self.tree.insert('', tk.END, values=(item.fecha, item.monto, ', '.join(item.etiquetas), item.descripcion))
+            self.display_items_in_treeview(listado_filtrado.items)
 
         except Exception as e:
             messagebox.showerror('Error', f'Error al filtrar los datos: {e}')
+
+    def show_all_gastos(self):
+        try:
+            self.display_items_in_treeview(self.listado.items)
+        except Exception as e:
+            messagebox.showerror('Error', f'Error al mostrar todos los gastos: {e}')
+
+    def display_items_in_treeview(self, items):
+        for item in self.tree.get_children():
+            self.tree.delete(item)
+
+        for item in items:
+            self.tree.insert('', tk.END, values=(item.fecha, item.monto, ', '.join(item.etiquetas), item.descripcion))
 
     def add_item(self):
         try:
@@ -186,21 +200,18 @@ class GestionGastosApp:
             etiquetas = [etq.strip() for etq in self.etiquetas_entry.get().split(',')]
             descripcion = self.descripcion_entry.get()
 
-            nuevo_item = Item(fecha, monto, etiquetas, descripcion)
-            self.listado.addItems(nuevo_item)
-            self.listado.saveItems(self.ruta)
+            item = Item(fecha, monto, etiquetas, descripcion)
+            self.listado.add(item)
+            self.registro.add_item(item)
+            self.clear_add_item_fields()
+            messagebox.showinfo('Éxito', 'El gasto se ha añadido correctamente')
 
-            self.update_treeview()
-            self.clear_entries()
-            messagebox.showinfo('Éxito', 'Item añadido correctamente')
         except Exception as e:
-            messagebox.showerror('Error', f'Error al añadir el item: {e}')
+            messagebox.showerror('Error', f'Error al añadir el gasto: {e}')
 
-    def clear_entries(self):
+    def clear_add_item_fields(self):
         self.fecha_entry.delete(0, tk.END)
+        self.fecha_entry.insert(0, datetime.now().strftime('%Y/%m/%d %H:%M:%S'))
         self.monto_entry.delete(0, tk.END)
         self.etiquetas_entry.delete(0, tk.END)
         self.descripcion_entry.delete(0, tk.END)
-        self.fecha_inicio_entry.delete(0, tk.END)
-        self.fecha_fin_entry.delete(0, tk.END)
-        self.etiquetas_buscar_entry.delete(0, tk.END)
