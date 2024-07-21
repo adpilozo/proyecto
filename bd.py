@@ -25,6 +25,21 @@ class Item:
     def __str__(self) -> str:
         return f"Fecha: {self.fecha}, Monto: {self.monto}, Etiquetas: {self.etiquetas}, Descripción: {self.descripcion}"
 
+    def toSeparateString(self, fecha:bool = True, monto:bool = True, etiquetas:bool = True, desc:bool = True, lastSpace:bool = False, lastCharF:str = "\n", lastCharM:str = "\n", lastCharE:str = "\n", lastCharD:str = "\n") -> str:
+        s = ""
+        if fecha:
+            s += f"Fecha: {self.fecha}" + lastCharF
+        if monto:
+            s += f"Monto: {self.monto}" + lastCharM
+        if etiquetas:
+            s += f"Etiquetas: {self.etiquetas}" + lastCharE
+        if desc:
+            s += f"Descripción: {self.descripcion}" + lastCharD
+        if lastSpace:
+            s += "\n"
+
+        return s
+
 class Registro:
     def __init__(self, ruta:str):
         self.ruta = ruta

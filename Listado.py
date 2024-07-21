@@ -29,7 +29,7 @@ class Listado:
         print("\n")
 
     def dateFilter(self, fechaInicio: datetime, fechaFin: datetime = datetime.now()):
-        listaFiltrada = Listado()
+        listaFiltrada = Listado([])
 
         for i in self.items:
             if i.fecha.date() >= fechaInicio.date() and i.fecha.date() <= fechaFin.date():
