@@ -5,7 +5,7 @@ formato_fecha = '%Y/%m/%d %H:%M:%S'
 delimitadores_csv = [',', '_']
 
 class Item:
-    def __init__ (self, fecha = datetime(1, 1, 1), monto = 0, etiquetas = [], descripcion = ""):
+    def __init__ (self, fecha = datetime(1, 1, 1), monto = 0.0, etiquetas = [], descripcion = ""):
         self.fecha = fecha
         self.monto = monto
         self.etiquetas = etiquetas

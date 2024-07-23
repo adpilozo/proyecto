@@ -17,6 +17,7 @@ class Estadisticas:
     def statsYear(list1: Listado, año:int = datetime.now().year) -> Listado:
         return list1.dateFilter(datetime(año, 1, 1), datetime(año + 1, 1, 1))
     
+    # Interpolación Lagrange
     def pointsToFunction(listX: list[int], listF: list[int]):
         n = len(listX)
         x = Symbol("x")

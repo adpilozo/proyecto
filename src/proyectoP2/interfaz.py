@@ -90,7 +90,10 @@ class GestionGastosApp:
         self.filter_button.grid(row=3, column=0, columnspan=2, pady=10)
 
         self.show_all_button = ttk.Button(filter_frame, text='Todos los Gastos', command=self.show_all_gastos)
-        self.show_all_button.grid(row=3, column=2, columnspan=2, padx=5, pady=10)
+        self.show_all_button.grid(row=3, column=1, columnspan=2, padx=5, pady=10)
+
+        self.delete_item = ttk.Button(filter_frame, text='Borrar Item', command=self.delete_gasto)
+        self.delete_item.grid(row=3, column=3, columnspan=2, padx=5, pady=10)
 
         # Treeview
         self.tree = ttk.Treeview(frame, columns=('Fecha', 'Monto', 'Etiquetas', 'Descripción'), show='headings')
@@ -102,7 +105,7 @@ class GestionGastosApp:
 
         return frame
 
-    def create_estadisticas_frame(self):
+    def create_estadisticas_frame(self, statsYear = 0, statsMonth = 0):
         frame = tk.Canvas(self.frame)
         frame.pack(fill=tk.BOTH, expand=True)
 
@@ -110,8 +113,10 @@ class GestionGastosApp:
         titulo = ttk.Label(frame, text="Predicción de Gastos", font=("Arial", 15, "bold"))
         titulo.pack(pady=20)
 
-        statsYear = Estadisticas.predictNextYear(self.listado)
-        statsMonth = Estadisticas.predictNextMonth(self.listado)
+        if statsYear == 0:
+            statsYear = Estadisticas.predictNextYear(self.listado)
+        if statsMonth == 0:
+            statsMonth = Estadisticas.predictNextMonth(self.listado)
 
         # Sección Predicción Mes Siguiente
         ttk.Label(frame, text=f"Predicción Mes {statsMonth.fecha.month}, Año {statsMonth.fecha.year}", font=("Arial", 10, "bold")).pack(padx=5, pady=5)
@@ -171,7 +176,7 @@ class GestionGastosApp:
             etiquetas_buscar = [etq.strip() for etq in etiquetas_buscar_str.split(',')] if etiquetas_buscar_str else []
 
             listado_filtrado = self.listado.dateFilter(fecha_inicio, fecha_fin)
-            
+
             if etiquetas_buscar:
                 listado_filtrado.items = [item for item in listado_filtrado.items if any(etq in etiquetas_buscar for etq in item.etiquetas)]
 
@@ -179,6 +184,20 @@ class GestionGastosApp:
 
         except Exception as e:
             messagebox.showerror('Error', f'Error al filtrar los datos: {e}')
+
+    def delete_gasto(self):
+        try:
+            selected_item = self.tree.focus()
+
+            itemArray = self.tree.item(selected_item)['values']
+            itemGasto = Item(datetime.strptime(itemArray[0], '%Y-%m-%d %H:%M:%S'), float(itemArray[1]), [i for i in itemArray[2].split(", ")], itemArray[3])
+
+            self.listado.removeItems(itemGasto)
+            self.registro.sobrescribir_items(self.listado.items)
+
+            self.display_items_in_treeview(self.listado.items)
+        except Exception:
+            messagebox.showerror("Error", f"No se ha seleccionado ningún gasto")
 
     def show_all_gastos(self):
         try:
@@ -201,8 +220,8 @@ class GestionGastosApp:
             descripcion = self.descripcion_entry.get()
 
             item = Item(fecha, monto, etiquetas, descripcion)
-            self.listado.add(item)
-            self.registro.add_item(item)
+            self.listado.addItems(item)
+            self.registro.agregar_item(item)
             self.clear_add_item_fields()
             messagebox.showinfo('Éxito', 'El gasto se ha añadido correctamente')
 
