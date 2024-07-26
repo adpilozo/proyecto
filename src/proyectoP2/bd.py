@@ -118,3 +118,20 @@ class Registro:
             total += item.monto
         
         return round(total, 2)
+
+    def leerEtiquetas(self):
+        with open(self.ruta, encoding='utf-8') as archivo:
+            etiquetas = {}
+            lector = csv.reader(archivo, delimiter = delimitadores_csv[0])
+
+            for linea in lector:
+                etiquetas[linea[0]] = int(linea[1])
+
+        return etiquetas
+
+    def sobreescribirEtiquetas(self, etiquetas: dict):
+        etq_csv = [(clave, valor) for clave, valor in etiquetas.items()]
+        
+        with open(self.ruta, 'w', newline = '', encoding='utf-8') as archivo:
+            escritor = csv.writer(archivo, delimiter = delimitadores_csv[0])
+            escritor.writerows(etq_csv)

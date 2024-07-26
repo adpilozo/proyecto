@@ -10,9 +10,12 @@ class GestionGastosApp:
         self.root = root
         self.root.title("Gestión de Gastos Personales")
         
-        self.ruta = './src/utils/databases/items.csv'
-        self.registro = Registro(self.ruta)
-        self.listado = Listado(self.registro.leer_items())
+        self.rutaItems = './src/utils/databases/items.csv'
+        self.registroItems = Registro(self.rutaItems)
+        self.listadoItems = Listado(self.registroItems.leer_items())
+        self.rutaEtiquetas = "./src/utils/databases/etiquetas.csv"
+        self.registroEtiquetas = Registro(self.rutaEtiquetas)
+        self.etiquetasDict = self.registroEtiquetas.leerEtiquetas()
 
         self.create_menu()
         self.create_frames()
@@ -24,6 +27,7 @@ class GestionGastosApp:
         self.gastos_menu = tk.Menu(self.menu_bar, tearoff=0)
         self.menu_bar.add_cascade(label="Menú", menu=self.gastos_menu)
         self.gastos_menu.add_command(label="Añadir Gastos", command=self.show_add_gastos)
+        self.gastos_menu.add_command(label="Añadir Etiquetas", command=self.showAddEtiquetas)
         self.gastos_menu.add_command(label="Ver Gastos", command=self.show_view_gastos)
         self.gastos_menu.add_command(label="Estadísticas", command=self.show_estadisticas)
 
@@ -32,10 +36,10 @@ class GestionGastosApp:
         self.frame.pack(fill=tk.BOTH, expand=True)
 
         self.add_gastos_frame = self.create_add_gastos_frame()
+        self.addEtiquetasFrame = self.createAddEtiquetasFrame()
         self.view_gastos_frame = self.create_view_gastos_frame()
         self.estadisticas_frame = self.create_estadisticas_frame()
 
-        # Ventana Inicial
         self.show_view_gastos()
 
     def create_add_gastos_frame(self):
@@ -53,7 +57,7 @@ class GestionGastosApp:
         self.monto_entry.grid(row=1, column=1, padx=5, pady=5)
 
         ttk.Label(frame, text='Etiquetas').grid(row=2, column=0, padx=5, pady=5)
-        self.etiquetas_entry = ttk.Entry(frame)
+        self.etiquetas_entry = ttk.Combobox(frame, state="readonly")
         self.etiquetas_entry.grid(row=2, column=1, padx=5, pady=5)
 
         ttk.Label(frame, text='Descripción').grid(row=3, column=0, padx=5, pady=5)
@@ -96,12 +100,12 @@ class GestionGastosApp:
         self.delete_item.grid(row=3, column=3, columnspan=2, padx=5, pady=10)
 
         # Treeview
-        self.tree = ttk.Treeview(frame, columns=('Fecha', 'Monto', 'Etiquetas', 'Descripción'), show='headings')
-        self.tree.heading('Fecha', text='Fecha')
-        self.tree.heading('Monto', text='Monto')
-        self.tree.heading('Etiquetas', text='Etiquetas')
-        self.tree.heading('Descripción', text='Descripción')
-        self.tree.pack(fill=tk.BOTH, expand=True)
+        self.treeGastos = ttk.Treeview(frame, columns=('Fecha', 'Monto', 'Etiquetas', 'Descripción'), show='headings')
+        self.treeGastos.heading('Fecha', text='Fecha')
+        self.treeGastos.heading('Monto', text='Monto')
+        self.treeGastos.heading('Etiquetas', text='Etiquetas')
+        self.treeGastos.heading('Descripción', text='Descripción')
+        self.treeGastos.pack(fill=tk.BOTH, expand=True)
 
         return frame
 
@@ -114,9 +118,9 @@ class GestionGastosApp:
         titulo.pack(pady=20)
 
         if statsYear == 0:
-            statsYear = Estadisticas.predictNextYear(self.listado)
+            statsYear = Estadisticas.predictNextYear(self.listadoItems)
         if statsMonth == 0:
-            statsMonth = Estadisticas.predictNextMonth(self.listado)
+            statsMonth = Estadisticas.predictNextMonth(self.listadoItems)
 
         # Sección Predicción Mes Siguiente
         ttk.Label(frame, text=f"Predicción Mes {statsMonth.fecha.month}, Año {statsMonth.fecha.year}", font=("Arial", 10, "bold")).pack(padx=5, pady=5)
@@ -141,6 +145,43 @@ class GestionGastosApp:
             ttk.Label(frame, text=s).pack(padx=5, pady=5)
 
         return frame
+    
+    def createAddEtiquetasFrame(self):
+        frame = tk.Frame(self.frame)
+        frame.pack(fill=tk.BOTH, expand=True)
+
+        frameEtiquetaOptions = tk.Frame(frame)
+        frameEtiquetaOptions.pack(fill=tk.X, pady=10)
+
+        titulo = ttk.Label(frameEtiquetaOptions, text="Agregar Etiquetas", font=("Arial", 15, "bold"))
+        titulo.grid(row=0, column=0, columnspan=2, pady=20)
+
+        ttk.Label(frameEtiquetaOptions, text="Nombre").grid(row=1, column=0, padx=5, pady=5)
+        self.etiquetaNameEntry = ttk.Entry(frameEtiquetaOptions)
+        self.etiquetaNameEntry.grid(row=1, column=1, padx=5, pady=5)
+
+        ttk.Label(frameEtiquetaOptions, text="Peso").grid(row=2, column=0, padx=5, pady=5)
+        self.etiquetaPesoEntry = ttk.Entry(frameEtiquetaOptions)
+        self.etiquetaPesoEntry.grid(row=2, column=1, padx=5, pady=5)
+        self.etiquetaPesoEntry.insert(0, "0")
+
+        self.addEtiquetaButton = ttk.Button(frameEtiquetaOptions, text="Añadir Etiqueta", command=self.updateTreeEtiquetas)
+        self.addEtiquetaButton.grid(row=2, column=2, padx=5, pady=5)
+
+        self.deleteEtiquetaButton = ttk.Button(frameEtiquetaOptions, text="Eliminar Etiqueta", command=self.deleteEtiqueta)
+        self.deleteEtiquetaButton.grid(row=2, column=3, padx=5, pady=5)
+
+        self.treeEtiquetas = ttk.Treeview(frame, columns=("Etiqueta", "Peso"))
+        self.treeEtiquetas.heading("Etiqueta", text="Etiqueta")
+        self.treeEtiquetas.heading("Peso", text="Peso")
+        self.treeEtiquetas.pack(fill=tk.BOTH, expand=True)
+
+        return frame
+
+    def showAddEtiquetas(self):
+        self.clear_frames()
+        self.addEtiquetasFrame.pack(fill=tk.BOTH, expand=True)
+        self.display_items_in_treeview_Etiquetas()
 
     def show_estadisticas_data(self):
         self.clear_frames()
@@ -149,6 +190,7 @@ class GestionGastosApp:
     def show_add_gastos(self):
         self.clear_frames()
         self.add_gastos_frame.pack(fill=tk.BOTH, expand=True)
+        self.updateEtiquetasAddGasto()
 
     def show_view_gastos(self):
         self.clear_frames()
@@ -164,6 +206,10 @@ class GestionGastosApp:
         self.add_gastos_frame.pack_forget()
         self.view_gastos_frame.pack_forget()
         self.estadisticas_frame.pack_forget()
+        self.addEtiquetasFrame.pack_forget()
+
+    def updateEtiquetasAddGasto(self):
+        self.etiquetas_entry["values"] = list(self.etiquetasDict.keys())
 
     def update_treeview(self):
         try:
@@ -171,46 +217,83 @@ class GestionGastosApp:
             fecha_fin_str = self.fecha_fin_entry.get()
             etiquetas_buscar_str = self.etiquetas_buscar_entry.get()
             
-            fecha_inicio = datetime.strptime(fecha_inicio_str, '%Y/%m/%d') if fecha_inicio_str else self.listado.getOldest().fecha
+            fecha_inicio = datetime.strptime(fecha_inicio_str, '%Y/%m/%d') if fecha_inicio_str else self.listadoItems.getOldest().fecha
             fecha_fin = datetime.strptime(fecha_fin_str, '%Y/%m/%d') if fecha_fin_str else datetime.now()
             etiquetas_buscar = [etq.strip() for etq in etiquetas_buscar_str.split(',')] if etiquetas_buscar_str else []
 
-            listado_filtrado = self.listado.dateFilter(fecha_inicio, fecha_fin)
+            listado_filtrado = self.listadoItems.dateFilter(fecha_inicio, fecha_fin)
 
             if etiquetas_buscar:
                 listado_filtrado.items = [item for item in listado_filtrado.items if any(etq in etiquetas_buscar for etq in item.etiquetas)]
 
+            listado_filtrado.items = sorted(listado_filtrado.items, key=lambda x: (self.etiquetasDict[x.etiquetas[0]], ord(x.etiquetas[0][0])))
             self.display_items_in_treeview(listado_filtrado.items)
 
         except Exception as e:
             messagebox.showerror('Error', f'Error al filtrar los datos: {e}')
 
+    def updateTreeEtiquetas(self):
+        try:
+            nombreEtiqueta = self.etiquetaNameEntry.get()
+            pesoEtiqueta = self.etiquetaPesoEntry.get()
+
+            self.etiquetasDict[nombreEtiqueta] = int(pesoEtiqueta)
+            self.registroEtiquetas.sobreescribirEtiquetas(self.etiquetasDict)
+            self.clearEtiquetasFields()
+
+            self.display_items_in_treeview_Etiquetas()
+            messagebox.showinfo("Éxito", "La etiqueta y su peso se han añadido correctamente")
+        except Exception:
+            messagebox.showerror("Error", "Error con los valores ingresados, intente nuevamente")
+
     def delete_gasto(self):
         try:
-            selected_item = self.tree.focus()
+            selected_item = self.treeGastos.focus()
 
-            itemArray = self.tree.item(selected_item)['values']
+            itemArray = self.treeGastos.item(selected_item)['values']
             itemGasto = Item(datetime.strptime(itemArray[0], '%Y-%m-%d %H:%M:%S'), float(itemArray[1]), [i for i in itemArray[2].split(", ")], itemArray[3])
 
-            self.listado.removeItems(itemGasto)
-            self.registro.sobrescribir_items(self.listado.items)
+            self.listadoItems.removeItems(itemGasto)
+            self.registroItems.sobrescribir_items(self.listadoItems.items)
 
-            self.display_items_in_treeview(self.listado.items)
+            self.display_items_in_treeview(self.listadoItems.items)
         except Exception:
-            messagebox.showerror("Error", f"No se ha seleccionado ningún gasto")
+            messagebox.showerror("Error", "No se ha seleccionado ningún gasto")
+
+    def deleteEtiqueta(self):
+        try:
+            selectedEtiqueta = self.treeEtiquetas.focus()
+
+            etiqueta = self.treeEtiquetas.item(selectedEtiqueta)['values']
+            
+            self.etiquetasDict.pop(etiqueta[0])
+            self.registroEtiquetas.sobreescribirEtiquetas(self.etiquetasDict)
+
+            self.display_items_in_treeview_Etiquetas()
+        except Exception as e:
+            messagebox.showerror("Error", f"No se ha seleccionado ninguna etiqueta: {e}")
 
     def show_all_gastos(self):
         try:
-            self.display_items_in_treeview(self.listado.items)
+            self.display_items_in_treeview(self.listadoItems.items)
         except Exception as e:
             messagebox.showerror('Error', f'Error al mostrar todos los gastos: {e}')
 
     def display_items_in_treeview(self, items):
-        for item in self.tree.get_children():
-            self.tree.delete(item)
+        for item in self.treeGastos.get_children():
+            self.treeGastos.delete(item)
 
         for item in items:
-            self.tree.insert('', tk.END, values=(item.fecha, item.monto, ', '.join(item.etiquetas), item.descripcion))
+            self.treeGastos.insert('', tk.END, values=(item.fecha, item.monto, ', '.join(item.etiquetas), item.descripcion))
+
+    def display_items_in_treeview_Etiquetas(self):
+        for item in self.treeEtiquetas.get_children():
+            self.treeEtiquetas.delete(item)
+
+        self.etiquetasDict = {item: value for item, value in sorted(self.etiquetasDict.items(), key=lambda item: item[1])}
+
+        for item in self.etiquetasDict.items():
+            self.treeEtiquetas.insert('', tk.END, values=(item[0], item[1]))
 
     def add_item(self):
         try:
@@ -220,8 +303,8 @@ class GestionGastosApp:
             descripcion = self.descripcion_entry.get()
 
             item = Item(fecha, monto, etiquetas, descripcion)
-            self.listado.addItems(item)
-            self.registro.agregar_item(item)
+            self.listadoItems.addItems(item)
+            self.registroItems.agregar_item(item)
             self.clear_add_item_fields()
             messagebox.showinfo('Éxito', 'El gasto se ha añadido correctamente')
 
@@ -234,3 +317,8 @@ class GestionGastosApp:
         self.monto_entry.delete(0, tk.END)
         self.etiquetas_entry.delete(0, tk.END)
         self.descripcion_entry.delete(0, tk.END)
+
+    def clearEtiquetasFields(self):
+        self.etiquetaNameEntry.delete(0, tk.END)
+        self.etiquetaPesoEntry.delete(0, tk.END)
+        self.etiquetaPesoEntry.insert(0, "0")
