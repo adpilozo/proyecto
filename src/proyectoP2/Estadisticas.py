@@ -3,6 +3,7 @@ from .Listado import *
 from .bd import Item
 from datetime import datetime
 from sympy import Symbol # Librería a instalar (pip install sympy)
+from sympy.plotting import plot
 
 class Estadisticas:
     def statsMonth(list1: Listado, mes:int = datetime.now().month, año:int = datetime.now().year) -> Listado:
@@ -33,7 +34,7 @@ class Estadisticas:
 
         return f
 
-    def getFunction(list1: Listado):
+    def listadoToPoints(list1: Listado):
         nList = len(list1.items)
         if nList < 1:
             return 0
@@ -44,7 +45,11 @@ class Estadisticas:
         listX = [lambF(it) for it in list1.items]
         listF = list1.getGastos()
 
-        return Estadisticas.pointsToFunction(listX, listF) # Función estimada para los datos ingresados
+        return [listX, listF]
+
+    def getFunction(list1: Listado):
+        puntosListado = Estadisticas.listadoToPoints(list1)
+        return Estadisticas.pointsToFunction(puntosListado[0], puntosListado[1]) # Función estimada para los datos ingresados
 
     def predictNextMonth(list1: Listado) -> Item:
         maxTimeItem = list1.getLatest().fecha
@@ -71,3 +76,6 @@ class Estadisticas:
             listReturn.addItems(itemAux)
 
         return listReturn
+
+    def functionGraph(function):
+        return plot(function, show=False, xlim=[-25, 25])

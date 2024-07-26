@@ -115,7 +115,7 @@ class GestionGastosApp:
 
         # ttk.Label(frame, text='Fecha (YYYY/MM/DD HH:MM:SS)').grid(row=0, column=0, padx=5, pady=5)
         titulo = ttk.Label(frame, text="Predicción de Gastos", font=("Arial", 15, "bold"))
-        titulo.pack(pady=20)
+        titulo.grid(row=0, column=1, columnspan=2, pady=20)
 
         if statsYear == 0:
             statsYear = Estadisticas.predictNextYear(self.listadoItems)
@@ -123,26 +123,25 @@ class GestionGastosApp:
             statsMonth = Estadisticas.predictNextMonth(self.listadoItems)
 
         # Sección Predicción Mes Siguiente
-        ttk.Label(frame, text=f"Predicción Mes {statsMonth.fecha.month}, Año {statsMonth.fecha.year}", font=("Arial", 10, "bold")).pack(padx=5, pady=5)
-
-        ttk.Label(frame, text=statsMonth.toSeparateString(etiquetas=False, desc=False)).pack(padx=5, pady=5)
+        ttk.Label(frame, text=f"Predicción Mes {statsMonth.fecha.month}, Año {statsMonth.fecha.year}", font=("Arial", 10, "bold")).grid(row=1, column=0, padx=5, pady=5)
+        ttk.Label(frame, text=statsMonth.toSeparateString(etiquetas=False, desc=False)).grid(row = 2, column=0, padx=5, pady=5)
 
         # Línea divisoria
-        linDiv = ttk.Separator(frame, orient="horizontal")
-        linDiv.pack(fill="x")
-
-        # ScrollBar
-        self.scrollbar = ttk.Scrollbar(frame, orient=tk.VERTICAL)
-        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        self.frame.configure(yscrollcommand=self.scrollbar.set)
+        linDiv = ttk.Separator(frame, orient="vertical")
+        linDiv.grid(row=1, column=1, columnspan=5)
 
         # Sección Predicción Año Siguiente
         itemStatsYear = statsYear.getOldest().fecha
-        ttk.Label(frame, text=f"Predicción Año {itemStatsYear.year - 1}/{itemStatsYear.month} - {itemStatsYear.year}/{itemStatsYear.month}", font=("Arial", 10, "bold")).pack(padx=5, pady=5)
+        ttk.Label(frame, text=f"Predicción Año {itemStatsYear.year - 1}/{itemStatsYear.month} - {itemStatsYear.year}/{itemStatsYear.month}", font=("Arial", 10, "bold")).grid(row= 1, column=1, padx=5, pady=5)
 
+        self.showGraphEstadisticasButton = ttk.Button(frame, text="Gráfico de la Función", command=self.showGraphEstadisticas)
+        self.showGraphEstadisticasButton.grid(row=1, column=3, padx=5, pady=5)
+
+        rowCounter = 2
         for item in statsYear.items:
             s = item.toSeparateString(etiquetas=False, desc=False, lastCharF=" --- ")
-            ttk.Label(frame, text=s).pack(padx=5, pady=5)
+            ttk.Label(frame, text=s).grid(row=rowCounter, column=1, padx=5, pady=5)
+            rowCounter += 1
 
         return frame
     
@@ -294,6 +293,13 @@ class GestionGastosApp:
 
         for item in self.etiquetasDict.items():
             self.treeEtiquetas.insert('', tk.END, values=(item[0], item[1]))
+
+    def showGraphEstadisticas(self):
+        f = Estadisticas.getFunction(self.listadoItems)
+        if f != 0:
+            plot = Estadisticas.functionGraph(f)
+
+        plot.show()
 
     def add_item(self):
         try:
